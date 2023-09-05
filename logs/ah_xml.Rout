@@ -1,0 +1,110 @@
+
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> here::i_am("code/ah_xml.R")
+here() starts at /Users/ryan/Documents/R/Health
+> source(here::here("code/load.R"))
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr   1.1.2     ✔ readr   2.1.4
+✔ forcats 1.0.0     ✔ stringr 1.5.0
+✔ ggplot2 3.4.2     ✔ tibble  3.2.1
+✔ purrr   1.0.1     ✔ tidyr   1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> 
+> #load data
+> #unzip compressed apple health data
+> unzip(zipfile = here("data/export.zip"),
++       exdir = here("data/"))
+> 
+> #The xml has invalid character thanks to 1 error due to a volume alert on cheap headphones
+> #this removes that error
+> xml_lines <- readLines(here("data/apple_health_export/export.xml"))
+> #find the index(es) of the line(s) containing "Tobii"
+> lines_with_tobii <- grep("Tobii", xml_lines)
+> #remove the line(s) containing "Tobii"
+> xml_lines <- xml_lines[-lines_with_tobii]
+> #write lines back
+> writeLines(xml_lines, here("data/apple_health_export/export.xml"))
+Warning message:
+In for (i in seq_len(n)) { :
+  closing unused connection 3 (/Users/ryan/Documents/R/Health/text/today.txt)
+> #remove big file
+> rm(xml_lines)
+> 
+> #read xml file
+> xml <- xmlParse(here("data/apple_health_export/export.xml"))
+> 
+> #delete unzipped data
+> unlink(here("data/apple_health_export/"), recursive = TRUE) 
+> 
+> #transform xml file to data frame - select the Record rows from the xml file
+> dat <- XML:::xmlAttrsToDataFrame(xml["//Record"])
+> 
+> #make value numeric
+> dat$value <- as.numeric(as.character(dat$value))
+Warning message:
+NAs introduced by coercion 
+> 
+> #fix dates
+> dat$endDate <- ymd_hms(dat$endDate, tz="America/New_York")
+Date in ISO8601 format; converting timezone from UTC to "America/New_York".
+> 
+> #add year, month, date, dayofweek, hour, columns
+> dat$year <- format(dat$endDate,"%Y")
+> dat$month <- format(dat$endDate,"%m")
+> dat$week <- format(dat$endDate,"%W")
+> dat$date <- format(dat$endDate,"%Y-%m-%d") |> as.Date()
+> dat$time <- format(dat$endDate,"%H:%M:%S")
+> dat$hour <- format(dat$endDate,"%H") |> as.numeric()
+> dat$minute <- format(dat$endDate,"%M") |> as.numeric()
+> dat$second <- format(dat$endDate,"%S") |> as.numeric()
+> dat$dayofweek <- wday(dat$endDate, label = TRUE, abbr = FALSE)
+> 
+> #-----
+> #Data cleaning
+> #ErgData is polluting my heart rate data with duplicates
+> #remove ErgData heart rate obs
+> dat <- dat |>
++   filter(!(sourceName == "ErgData" & type == "HKQuantityTypeIdentifierHeartRate"))
+> 
+> #add a marker for days you rowed
+> dat <- dat |>
++   group_by(date) |>
++   #identify days you rowed
++   mutate(did_rowing = ifelse(any(grepl("HKQuantityTypeIdentifierDistanceWalkingRunning ErgData", paste(type, sourceName))), 1, 0))
+> 
+> #-----
+> #Save data
+> write_feather(dat, here("data/ah.feather"))
+> 
+> proc.time()
+   user  system elapsed 
+100.564   7.204 109.310 

@@ -1,0 +1,248 @@
+
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> here::i_am("code/ah_analysis.R")
+here() starts at /Users/ryan/Documents/R/Health
+> source(here::here("code/load.R"))
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr   1.1.2     ✔ readr   2.1.4
+✔ forcats 1.0.0     ✔ stringr 1.5.0
+✔ ggplot2 3.4.2     ✔ tibble  3.2.1
+✔ purrr   1.0.1     ✔ tidyr   1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> 
+> #load data
+> dat <- read_feather(here("data/ah.feather"))
+Warning message:
+closing unused connection 3 (/Users/ryan/Documents/R/Health/text/today.txt) 
+> 
+> #unique(dat$type)
+> #test <- dat |>
+> #  filter(type == "HKQuantityTypeIdentifierHeartRateRecoveryOneMinute")
+> 
+> #------
+> #nightmare trying to calculate HRR after rowing
+> # test <- dat |>
+> #   filter(date == Sys.Date())
+> # 
+> # rowing_spells <- dat |>
+> #   #filter to rowing distance data
+> #   filter(type == "HKQuantityTypeIdentifierDistanceWalkingRunning",
+> #          sourceName == "ErgData") |>
+> #   #grab the end of each spell per day (will miss days I row more than once)
+> #   group_by(date) |>
+> #   mutate(end_of_spell = if_else(endDate == max(endDate), 1, 0)) |>
+> #   #filter to the end of each spells
+> #   filter(end_of_spell == 1) |>
+> #   #calculate start and end of 1 min HRR time
+> #   mutate(HRR_start_time = endDate,
+> #          HRR_end_time = endDate + 60)
+> # 
+> # HRR_dat <- dat |>
+> #   filter(did_rowing == 1,
+> #          type == "HKQuantityTypeIdentifierHeartRate")
+> # 
+> # map(unique(HRR_dat$date),
+> #     function(x) HRR_dat |>
+> #       filter(date == x,
+> #              endDate > rowing_spells$HRR_start_time[rowing_spells$date == x],
+> #              endDate < rowing_spells$HRR_end_time[rowing_spells$date == x]) |>
+> #       summarize(HRR = max(value) - min(value)) |>
+> #       filter(HRR != Inf,
+> #              HRR != -Inf)
+> #     )
+> 
+> unique(dat$type)
+ [1] "HKQuantityTypeIdentifierHeight"                        
+ [2] "HKQuantityTypeIdentifierBodyMass"                      
+ [3] "HKQuantityTypeIdentifierHeartRate"                     
+ [4] "HKQuantityTypeIdentifierRespiratoryRate"               
+ [5] "HKQuantityTypeIdentifierStepCount"                     
+ [6] "HKQuantityTypeIdentifierDistanceWalkingRunning"        
+ [7] "HKQuantityTypeIdentifierBasalEnergyBurned"             
+ [8] "HKQuantityTypeIdentifierActiveEnergyBurned"            
+ [9] "HKQuantityTypeIdentifierFlightsClimbed"                
+[10] "HKQuantityTypeIdentifierAppleExerciseTime"             
+[11] "HKQuantityTypeIdentifierDistanceCycling"               
+[12] "HKQuantityTypeIdentifierRestingHeartRate"              
+[13] "HKQuantityTypeIdentifierVO2Max"                        
+[14] "HKQuantityTypeIdentifierWalkingHeartRateAverage"       
+[15] "HKQuantityTypeIdentifierEnvironmentalAudioExposure"    
+[16] "HKQuantityTypeIdentifierHeadphoneAudioExposure"        
+[17] "HKQuantityTypeIdentifierWalkingDoubleSupportPercentage"
+[18] "HKQuantityTypeIdentifierSixMinuteWalkTestDistance"     
+[19] "HKQuantityTypeIdentifierAppleStandTime"                
+[20] "HKQuantityTypeIdentifierWalkingSpeed"                  
+[21] "HKQuantityTypeIdentifierWalkingStepLength"             
+[22] "HKQuantityTypeIdentifierWalkingAsymmetryPercentage"    
+[23] "HKQuantityTypeIdentifierStairAscentSpeed"              
+[24] "HKQuantityTypeIdentifierStairDescentSpeed"             
+[25] "HKDataTypeSleepDurationGoal"                           
+[26] "HKQuantityTypeIdentifierAppleWalkingSteadiness"        
+[27] "HKQuantityTypeIdentifierHeartRateRecoveryOneMinute"    
+[28] "HKQuantityTypeIdentifierRunningPower"                  
+[29] "HKQuantityTypeIdentifierEnvironmentalSoundReduction"   
+[30] "HKQuantityTypeIdentifierRunningSpeed"                  
+[31] "HKCategoryTypeIdentifierSleepAnalysis"                 
+[32] "HKCategoryTypeIdentifierAppleStandHour"                
+[33] "HKCategoryTypeIdentifierMindfulSession"                
+[34] "HKCategoryTypeIdentifierLowHeartRateEvent"             
+[35] "HKCategoryTypeIdentifierAudioExposureEvent"            
+[36] "HKCategoryTypeIdentifierHandwashingEvent"              
+[37] "HKQuantityTypeIdentifierHeartRateVariabilitySDNN"      
+> 
+> ## Graphs
+> 
+> #looking up to 1 year back, linear models
+> #Resting heart rate
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierRestingHeartRate",
++          endDate > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = mean(value)) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = "Average Resting Heart Rate")
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> ggsave(here("figures/resting_heart.png"), height = 3, width = 3)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> 
+> #VO2 Max
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierVO2Max",
++          date > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = mean(value)) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = expression(paste("Estimated ", VO[2], " Max", sep = "")))
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> ggsave(here("figures/VO2max.png"), height = 3, width = 3)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> 
+> #heart rate variability
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
++          date > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = mean(value)) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = expression(paste("Average Heart Rate Variability", sep = "")))
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> ggsave(here("figures/heart_variability.png"), height = 3, width = 3)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> 
+> #heart rate recovery
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierHeartRateRecoveryOneMinute",
++          date > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = mean(value)) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   #geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = "1 Minute Heart Rate Recovery")
+> ggsave(here("figures/1min_HR_recovery.png"), height = 3, width = 3)
+> 
+> #exercise time
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierAppleExerciseTime",
++          sourceName != "Ryan’s Apple Watch",
++          date > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = sum(value) / 60) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = "Hours of Exercise Time") 
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> ggsave(here("figures/Exercise_time.png"), height = 3, width = 3)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> 
+> #active energy burned
+> dat |>
++   filter(type == "HKQuantityTypeIdentifierActiveEnergyBurned",
++          sourceName != "Ryan’s Apple Watch",
++          date > Sys.Date() - months(24)) |>
++   group_by(date) |>
++   summarize(value = sum(value)) |>
++   #remove most extreme obs
++   arrange(value) |>
++   slice(-c(1, n())) |>
++   ggplot(aes(x = date, y = value)) +
++   geom_point(color = "grey", alpha = 0.8) +
++   geom_smooth(se = F, color = "black") +
++   geom_vline(xintercept = as.Date("2023/02/26"), color = "red") +
++   scale_x_date(date_labels = "%b '%y") +
++   labs(x = "",
++        y = "Daily Active Calories Burned")
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> ggsave(here("figures/Active_calories_burned.png"), height = 3, width = 3)
+`geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 15.649   0.379  16.102 

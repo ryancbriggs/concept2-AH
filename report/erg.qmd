@@ -1,0 +1,46 @@
+---
+title-block-style: none
+date: today
+date-format: "D MMMM, YYYY"
+format: pdf
+pdf-engine: xelatex
+mainfont: Palatino
+monofont: Menlo
+pagenumbering: no #doesn't work
+execute:
+  warning: false
+  echo: false
+  message: false
+editor: visual
+---
+
+```{r load data}
+here::i_am("report/erg.qmd")
+source(here::here("code/load.R"))
+```
+
+Today is `r format(Sys.Date(), format = "%B %e, %Y")`.
+
+Your cost per use of the erg is \$`r read_lines(here("text/cost_per_use.txt"))`.
+
+In the past 7 days you rowed `r read_lines(here("text/dist_rowed_week.txt"))`km and in the current month you rowed `r read_lines(here("text/dist_rowed_month.txt"))`km.
+
+If you keep rowing at your current weekly rate then you will hit 1 million meters rowed on `r read_lines(here("text/1mil_date.txt"))`.
+
+Over your lifetime you have rowed `r read_lines(here("text/dist_rowed_total.txt"))`km.
+
+```{r}
+#| layout-ncol: 3
+#| 
+knitr::include_graphics(here("figures/intensity.png"))
+knitr::include_graphics(here("figures/cum_dist.png"))
+knitr::include_graphics(here("figures/Active_calories_burned.png"))
+
+knitr::include_graphics(here("figures/2k.png"))
+knitr::include_graphics(here("figures/5k.png"))
+knitr::include_graphics(here("figures/6k.png"))
+
+knitr::include_graphics(here("figures/resting_heart.png"))
+knitr::include_graphics(here("figures/heart_variability.png"))
+knitr::include_graphics(here("figures/VO2max.png"))
+```

@@ -1,0 +1,73 @@
+
+R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> #load packages
+> packages = c(
++   "here",
++   "feather",
++   "lubridate",
++   "tidyverse",
++   "XML"
++ )
+> 
+> sapply(packages, require, character.only = TRUE, quietly = TRUE)
+here() starts at /Users/ryan/Documents/R/Health
+
+Attaching package: ‘lubridate’
+
+The following objects are masked from ‘package:base’:
+
+    date, intersect, setdiff, union
+
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr   1.1.2     ✔ readr   2.1.4
+✔ forcats 1.0.0     ✔ stringr 1.5.0
+✔ ggplot2 3.4.2     ✔ tibble  3.2.1
+✔ purrr   1.0.1     ✔ tidyr   1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+     here   feather lubridate tidyverse       XML 
+     TRUE      TRUE      TRUE      TRUE      TRUE 
+> 
+> #make and apply a simple ggplot theme
+> my_theme <- function() {
++   theme_classic() +
++   theme(
++     axis.ticks = element_blank(),
++     text = element_text(family = "Helvetica")
++     )
++ }
+> 
+> theme_set(my_theme())
+> 
+> #update a text file with today's date, used to keep everything up to date.
+> Sys.Date() |>
++   as.character() |>
++   writeLines(file(here("text/today.txt")))
+> 
+> proc.time()
+   user  system elapsed 
+  9.158   0.166   9.325 
+Warning message:
+In .Internal(gc(verbose, reset, full)) :
+  closing unused connection 3 (/Users/ryan/Documents/R/Health/text/today.txt)
