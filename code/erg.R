@@ -50,7 +50,7 @@ round(sum(dat$Distance) / 1000, 0) |>
 
 #distance rowed in the past week
 weekly_dist <- dat |>
-  filter(Date >= Sys.Date() - 7) |>
+  filter(Date > Sys.Date() - 7) |>
   summarize(sum(Distance) / 1000) |>
   pull() |>
   round()
@@ -112,12 +112,11 @@ dat |>
   ggplot(aes(x = Date, y = `Work Time (Seconds)` / 60, color = personal_best)) +
   geom_point(alpha = 0.8) +
   scale_y_continuous(labels = format_time) +
-  scale_x_date(date_labels = "%b '%y") +
+  scale_x_date(date_labels = "%b '%y", date_breaks = "2 months") +
   scale_color_manual(values = c("grey", "red", "black")) +
   guides(color = "none") +
   labs(x = "",
-       y = "2k Rowing Time",
-       color = "")
+       y = "2k Rowing Time")
 ggsave(here("figures/2k.png"), height = 3, width = 3)
 
 dat |>
@@ -125,7 +124,7 @@ dat |>
   ggplot(aes(x = Date, y = `Work Time (Seconds)` / 60, color = personal_best)) +
   geom_point(alpha = 0.8) +
   scale_y_continuous(labels = format_time) +
-  scale_x_date(date_labels = "%b '%y") +
+  scale_x_date(date_labels = "%b '%y", date_breaks = "1 month") +
   scale_color_manual(values = c("grey", "red", "black")) +
   guides(color = "none") +
   labs(x = "",
@@ -137,7 +136,7 @@ dat |>
   ggplot(aes(x = Date, y = `Work Time (Seconds)` / 60, color = personal_best)) +
   geom_point(alpha = 0.8) +
   scale_y_continuous(labels = format_time) +
-  scale_x_date(date_labels = "%b '%y") +
+  scale_x_date(date_labels = "%b '%y", date_breaks = "1 month") +
   scale_color_manual(values = c("grey", "red", "black")) +
   guides(color = "none") +
   labs(x = "",
