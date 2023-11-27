@@ -14,7 +14,8 @@ my_theme <- function() {
   theme_classic() +
   theme(
     axis.ticks = element_blank(),
-    text = element_text(family = "Helvetica")
+    text = element_text(family = "Helvetica"),
+    plot.margin = unit(c(.1,.6,.1,.1), 'cm')
     )
 }
 

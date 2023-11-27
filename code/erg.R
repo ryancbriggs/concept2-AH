@@ -44,9 +44,9 @@ round(1440 / nrow(dat)) |>
   writeLines(file(here("text/cost_per_use.txt")))
 
 #total distance rowed, km
-round(sum(dat$Distance) / 1000, 0) |>
-  as.character() |>
-  writeLines(file(here("text/dist_rowed_total.txt")))
+total_rowed <- round(sum(dat$Distance) / 1000, 0) 
+writeLines(total_rowed |> as.character(),
+           file(here("text/dist_rowed_total.txt")))
 
 #distance rowed in the past week
 weekly_dist <- dat |>
@@ -59,8 +59,8 @@ weekly_dist |>
   as.character() |>
   writeLines(file(here("text/dist_rowed_week.txt")))
 
-#how long until you hit 1 million metres
-weeks_to_go <- round((1000000 - (weekly_dist * 1000)) / 
+#how long until you hit 1 million metres?
+weeks_to_go <- round((1000000 - total_rowed * 1000) / 
                        (weekly_dist * 1000))
 
 #do date math and format the result
@@ -246,10 +246,11 @@ dat |>
   mutate(percent_million = cumsum(Distance) / 1000000 * 100) |>
   ggplot(aes(x = Date, y = percent_million)) +
   geom_line() +
+  scale_x_date(date_labels = "%b '%y", date_breaks = "2 months") +
   scale_y_continuous(limits = c(0,100),
                      labels = scales::unit_format(
                        unit = "%")) +
   labs(y = "",
        title = "How close am I to 1 million metres?")
-ggsave(here("figures/dist_1m.png"), height = 4, width = 6)
+ggsave(here("figures/dist_1m.png"), height = 4, width = 4)
 
