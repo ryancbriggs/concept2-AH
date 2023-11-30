@@ -60,16 +60,16 @@ weekly_dist |>
   writeLines(file(here("text/dist_rowed_week.txt")))
 
 #how long until you hit 1 million metres?
-weeks_to_go <- round((1000000 - total_rowed * 1000) / 
-                       (weekly_dist * 1000))
+days_to_go <- round((1000000 - total_rowed * 1000) / 
+                       (weekly_dist * 1000) * 7)
 
 #do date math and format the result
-weeks_to_go <- ifelse(is_empty(weeks_to_go),
+days_to_go <- ifelse(is_empty(days_to_go),
         "a date ages in the future",
-        format(Sys.Date() + weeks(weeks_to_go),"%e %B, %Y") |>
+        format(Sys.Date() + days(days_to_go),"%e %B, %Y") |>
           as.character()
           )
-writeLines(weeks_to_go, file(here("text/1mil_date.txt")))
+writeLines(days_to_go, file(here("text/1mil_date.txt")))
 
 #total distance rowed
 dat |>

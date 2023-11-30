@@ -29,18 +29,8 @@ If you keep rowing at your current weekly rate then you will hit 1 million meter
 
 Over your lifetime you have rowed `r read_lines(here("text/dist_rowed_total.txt"))`km.
 
-```{r}
-#| layout-ncol: 3
-#| 
-knitr::include_graphics(here("figures/intensity.png"))
-knitr::include_graphics(here("figures/cum_dist.png"))
-knitr::include_graphics(here("figures/Active_calories_burned.png"))
+![](%60r%20here(%22figures/intensity.png%22)%60){width="33%"} ![](%60r%20here(%22figures/cum_dist.png%22)%60){width="33%"} ![](%60r%20here(%22figures/Active_calories_burned.png%22)%60){width="33%"}
 
-knitr::include_graphics(here("figures/2k.png"))
-knitr::include_graphics(here("figures/5k.png"))
-knitr::include_graphics(here("figures/6k.png"))
+![](%60r%20here(%22figures/resting_heart.png%22)%60){width="33%"} ![](%60r%20here(%22figures/heart_variability.png%22)%60){width="33%"} ![](%60r%20here(%22figures/VO2max.png%22)%60){width="33%"}
 
-knitr::include_graphics(here("figures/resting_heart.png"))
-knitr::include_graphics(here("figures/heart_variability.png"))
-knitr::include_graphics(here("figures/VO2max.png"))
-```
+![](%60r%20here(%22figures/2k.png%22)%60){width="33%"} ![](%60r%20here(%22figures/5k.png%22)%60){width="33%"} ![](%60r%20here(%22figures/6k.png%22)%60){width="33%"}
