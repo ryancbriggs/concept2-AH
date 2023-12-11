@@ -17,20 +17,42 @@ editor: visual
 ```{r load data}
 here::i_am("report/erg.qmd")
 source(here::here("code/load.R"))
+distances <- read.csv(here("data/distances.csv"))
+```
+
+```{r calculate distance goals}
+target <- 2500000
+
+#how long until you hit your target?
+days_to_go <- round((target - distances$total_rowed) / 
+                       (distances$weekly_dist) * 7)
+
+#do date math and format the result
+days_to_go <- ifelse(is_empty(days_to_go),
+        "a date ages in the future",
+        format(Sys.Date() + days(days_to_go),"%e %B, %Y") |>
+          as.character()
+          )
 ```
 
 Today is `r format(Sys.Date(), format = "%B %e, %Y")`.
 
-Your cost per use of the erg is \$`r read_lines(here("text/cost_per_use.txt"))`.
+Your cost per use of the erg is \$`r distances$cost_per_use`.
 
-In the past 7 days you rowed `r read_lines(here("text/dist_rowed_week.txt"))`km and in the current month you rowed `r read_lines(here("text/dist_rowed_month.txt"))`km.
+In the past 7 days you rowed `r format(distances$weekly_dist, big.mark = ",")`m and in the current month you rowed `r format(distances$monthly_dist, big.mark = ",")`m.
 
-If you keep rowing at your current weekly rate then you will hit 1 million meters rowed on `r read_lines(here("text/1mil_date.txt"))`.
+If you keep rowing at your current weekly rate then you will hit `r format(target, big.mark=",")` meters rowed on `r days_to_go`.
 
-Over your lifetime you have rowed `r read_lines(here("text/dist_rowed_total.txt"))`km.
+Over your lifetime you have rowed `r format(distances$total_rowed, big.mark = ",")`m.
 
-![](%60r%20here(%22figures/intensity.png%22)%60){width="33%"} ![](%60r%20here(%22figures/cum_dist.png%22)%60){width="33%"} ![](%60r%20here(%22figures/Active_calories_burned.png%22)%60){width="33%"}
+![](`r here( "figures/intensity.png ")`){width="33%"}
+![](`r here( "figures/cum_dist.png ")`){width="33%"}
+![](`r here( "figures/Active_calories_burned.png ")`){width="33%"}
 
-![](%60r%20here(%22figures/resting_heart.png%22)%60){width="33%"} ![](%60r%20here(%22figures/heart_variability.png%22)%60){width="33%"} ![](%60r%20here(%22figures/VO2max.png%22)%60){width="33%"}
+![](`r here( "figures/resting_heart.png ")`){width="33%"}
+![](`r here( "figures/heart_variability.png ") `){width="33%"}
+![](`r here( "figures/VO2max.png ")`){width="33%"}
 
-![](%60r%20here(%22figures/2k.png%22)%60){width="33%"} ![](%60r%20here(%22figures/5k.png%22)%60){width="33%"} ![](%60r%20here(%22figures/6k.png%22)%60){width="33%"}
+![](`r here( "figures/2k.png ")`){width="33%"}
+![](`r here( "figures/5k.png ")`){width="33%"}
+![](`r here( "figures/6k.png ")`){width="33%"}

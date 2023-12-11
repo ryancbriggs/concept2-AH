@@ -38,67 +38,41 @@ dat <- dat |>
 #-----
 #Analyses using a dataset where the unit is the workout
 
-#cost of machine divided by times rowed
-round(1440 / nrow(dat)) |>
-  as.character() |>
-  writeLines(file(here("text/cost_per_use.txt")))
+#Save data for later use in the report
+distances <- data.frame(
+  cost_per_use = round(1440 / nrow(dat), 2),
+  total_rowed = sum(dat$Distance, na.rm = T),
+  weekly_dist = dat |>
+    filter(Date > Sys.Date() - 7) |>
+    summarize(sum(Distance)) |>
+    pull(),
+  monthly_dist = dat |>
+    filter(month(Date) == month(Sys.Date()),
+           year(Date) == year(Sys.Date())) |>
+    summarize(sum(Distance)) |>
+    pull()
+)
 
-#total distance rowed, km
-total_rowed <- round(sum(dat$Distance) / 1000, 0) 
-writeLines(total_rowed |> as.character(),
-           file(here("text/dist_rowed_total.txt")))
-
-#distance rowed in the past week
-weekly_dist <- dat |>
-  filter(Date > Sys.Date() - 7) |>
-  summarize(sum(Distance) / 1000) |>
-  pull() |>
-  round()
-
-weekly_dist |>
-  as.character() |>
-  writeLines(file(here("text/dist_rowed_week.txt")))
-
-#how long until you hit 1 million metres?
-days_to_go <- round((1000000 - total_rowed * 1000) / 
-                       (weekly_dist * 1000) * 7)
-
-#do date math and format the result
-days_to_go <- ifelse(is_empty(days_to_go),
-        "a date ages in the future",
-        format(Sys.Date() + days(days_to_go),"%e %B, %Y") |>
-          as.character()
-          )
-writeLines(days_to_go, file(here("text/1mil_date.txt")))
-
-#total distance rowed
-dat |>
-  filter(month(Date) == month(Sys.Date()),
-         year(Date) == year(Sys.Date())) |>
-  summarize(sum(Distance) / 1000) |>
-  pull() |>
-  round() |>
-  as.character() |>
-  writeLines(file(here("text/dist_rowed_month.txt")))
+write.csv(distances, here("data/distances.csv"), row.names = FALSE)
 
 #-----
 #graphs
 
 #watts per beat is a good measure *only* if I adjust it for time and distance
 #there is certainly a better way to do this, but I don't want to mess with Date
-m1 <- lm(watts_beat ~ poly(`Work Distance`, 2) + poly(`Work Time (Seconds)`, 2), data = dat)
-dat$HB_watt_res[!is.na(dat$watts_beat)] <- residuals(m1)
-
-dat |>
-  filter(!is.na(HB_watt_res)) |>
-  mutate(HB_watt_res = HB_watt_res / sd(HB_watt_res)) |>
-ggplot(aes(Date, HB_watt_res)) +
-  geom_point(color = "grey", alpha = 0.8) +
-  geom_smooth(se = F, color = "black") +
-  scale_x_date(date_labels = "%b '%y") +
-  labs(x = "",
-       y = "Watts per HB (modeled, SD)")
-ggsave(here("figures/watts_beats.png"), height = 3, width = 3)
+# m1 <- lm(watts_beat ~ poly(`Work Distance`, 2) + poly(`Work Time (Seconds)`, 2), data = dat)
+# dat$HB_watt_res[!is.na(dat$watts_beat)] <- residuals(m1)
+# 
+# dat |>
+#   filter(!is.na(HB_watt_res)) |>
+#   mutate(HB_watt_res = HB_watt_res / sd(HB_watt_res)) |>
+# ggplot(aes(Date, HB_watt_res)) +
+#   geom_point(color = "grey", alpha = 0.8) +
+#   geom_smooth(se = F, color = "black") +
+#   scale_x_date(date_labels = "%b '%y") +
+#   labs(x = "",
+#        y = "Watts per HB (modeled, SD)")
+# ggsave(here("figures/watts_beats.png"), height = 3, width = 3)
 
 #time formatting function
 format_time <- function(x) {
@@ -224,7 +198,7 @@ date_grid |>
 
 #-----
 #cumulative distance figures
-date_grid <- data.frame(Date = seq(min(dat$Date),
+date_grid <- data.frame(Date = seq(min(dat$Date, na.rm = T),
                                    as.Date(Sys.Date()),
                                    by = "days"))
 
